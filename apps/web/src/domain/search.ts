@@ -2,17 +2,20 @@ import type { Technician } from '@technician-map/shared';
 
 const digits = (s: string): string => s.replace(/\D/g, '');
 
-/** ค้นจากชื่อเล่น รหัส เบอร์โทร และชื่อจังหวัด (ฐานหรือไปได้) ไม่สนตัวพิมพ์เล็กใหญ่ */
+/**
+ * ค้นจากชื่อเล่น รหัส เบอร์โทร และชื่อจังหวัด (ฐานหรือไปได้) ไม่สนตัวพิมพ์เล็กใหญ่
+ * provinceNames คืนทุกชื่อของจังหวัด (ทุกภาษา) จึงพิมพ์ภาษาไหนก็เจอ
+ */
 export function filterTechnicians(
   list: readonly Technician[],
   query: string,
-  provinceName: ReadonlyMap<string, string>,
+  provinceNames: (code: string) => readonly string[],
 ): Technician[] {
   const q = query.trim().toLowerCase();
   if (q === '') return [...list];
   const qDigits = digits(q);
   return list.filter((t) => {
-    const provinces = [...t.baseProvinces, ...t.serviceProvinces].map((c) => provinceName.get(c) ?? '');
+    const provinces = [...t.baseProvinces, ...t.serviceProvinces].flatMap(provinceNames);
     const texts = [t.nickname, t.code, t.phone, ...provinces].map((s) => s.toLowerCase());
     return texts.some((s) => s.includes(q)) || (qDigits.length >= 3 && digits(t.phone).includes(qDigits));
   });

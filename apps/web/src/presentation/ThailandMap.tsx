@@ -2,7 +2,8 @@ import type { Technician } from '@technician-map/shared';
 import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import { INITIAL_VIEW, panBy, toMapPoint, zoomAround, type View } from '../domain/mapView';
 import { provinceFill } from '../domain/palette';
-import { PROVINCE_NAME as nameOf, has } from '../domain/provinces';
+import { useI18n } from '../application/I18nContext';
+import { has } from '../domain/provinces';
 import { MAP_VIEWBOX, PROVINCE_SHAPES } from '../infrastructure/mapData';
 
 const MAX_DOTS = 3;
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export function ThailandMap({ technicians, selected, focus, onSelect }: Props) {
+  const { t, label } = useI18n();
   const svgRef = useRef<SVGSVGElement>(null);
   const [view, setView] = useState<View>(INITIAL_VIEW);
   const viewRef = useRef(view);
@@ -105,7 +107,7 @@ export function ThailandMap({ technicians, selected, focus, onSelect }: Props) {
         className={`map${view.k > 1 ? ' zoomed' : ''}`}
         viewBox={`${view.x} ${view.y} ${W / view.k} ${H / view.k}`}
         role="group"
-        aria-label="แผนที่ประเทศไทย"
+        aria-label={t('mapLabel')}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerEnd}
@@ -131,7 +133,7 @@ export function ThailandMap({ technicians, selected, focus, onSelect }: Props) {
                 if (dragged.current <= DRAG_THRESHOLD) onSelect(shape.code);
               }}
             >
-              <title>{nameOf.get(shape.code)}</title>
+              <title>{label(shape.code)}</title>
             </path>
           );
         })}
@@ -153,9 +155,9 @@ export function ThailandMap({ technicians, selected, focus, onSelect }: Props) {
         })}
       </svg>
       <div className="zoomctl">
-        <button aria-label="ซูมเข้า" onClick={() => zoomAtCenter(1.5)}>+</button>
-        <button aria-label="ซูมออก" onClick={() => zoomAtCenter(1 / 1.5)}>−</button>
-        <button aria-label="รีเซ็ตมุมมอง" onClick={() => setView(INITIAL_VIEW)}>⟲</button>
+        <button aria-label={t('zoomIn')} onClick={() => zoomAtCenter(1.5)}>+</button>
+        <button aria-label={t('zoomOut')} onClick={() => zoomAtCenter(1 / 1.5)}>−</button>
+        <button aria-label={t('zoomReset')} onClick={() => setView(INITIAL_VIEW)}>⟲</button>
       </div>
     </div>
   );

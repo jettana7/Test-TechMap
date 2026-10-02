@@ -1,5 +1,6 @@
 import { isProvinceCode, type Technician, type TechnicianInput } from '@technician-map/shared';
 import { useState, type FormEvent } from 'react';
+import { useI18n } from '../application/I18nContext';
 import { ProvincePicker } from './ProvincePicker';
 
 interface Props {
@@ -14,6 +15,7 @@ interface Props {
 const onlyProvinces = (codes: string[]) => codes.filter(isProvinceCode);
 
 export function TechnicianForm({ technician, busy, error, onSubmit, onCancel }: Props) {
+  const { t } = useI18n();
   const [code, setCode] = useState(technician?.code ?? '');
   const [nickname, setNickname] = useState(technician?.nickname ?? '');
   const [phone, setPhone] = useState(technician?.phone ?? '');
@@ -35,31 +37,31 @@ export function TechnicianForm({ technician, busy, error, onSubmit, onCancel }: 
 
   return (
     <form className="form" onSubmit={submit}>
-      <h2>{technician ? 'แก้ไขข้อมูลช่าง' : 'เพิ่มช่างใหม่'}</h2>
+      <h2>{technician ? t('formEdit') : t('formAdd')}</h2>
       <label className="field">
-        <span>รหัสช่าง (พิมพ์เลข 0 นำหน้าได้)</span>
+        <span>{t('fieldCode')}</span>
         <input value={code} onChange={(e) => setCode(e.target.value)} maxLength={20} required />
       </label>
       <label className="field">
-        <span>ชื่อเล่น</span>
+        <span>{t('fieldNickname')}</span>
         <input value={nickname} onChange={(e) => setNickname(e.target.value)} maxLength={50} required />
       </label>
       <label className="field">
-        <span>เบอร์โทร</span>
+        <span>{t('phone')}</span>
         <input value={phone} inputMode="tel" onChange={(e) => setPhone(e.target.value)} maxLength={20} />
       </label>
       {technician && (
         <label className="field">
-          <span>สีประจำตัว</span>
+          <span>{t('fieldColor')}</span>
           <input type="color" value={color ?? '#888888'} onChange={(e) => setColor(e.target.value)} />
         </label>
       )}
-      <ProvincePicker label="จังหวัดฐาน" value={base} onChange={setBase} />
-      <ProvincePicker label="จังหวัดที่ไปได้" value={service} onChange={setService} />
+      <ProvincePicker label={t('fieldBase')} value={base} onChange={setBase} />
+      <ProvincePicker label={t('fieldService')} value={service} onChange={setService} />
       {error !== '' && <p className="error">{error}</p>}
       <div className="row">
-        <button type="button" onClick={onCancel} disabled={busy}>ยกเลิก</button>
-        <button className="primary" disabled={busy}>{busy ? 'กำลังบันทึก...' : 'บันทึก'}</button>
+        <button type="button" onClick={onCancel} disabled={busy}>{t('cancel')}</button>
+        <button className="primary" disabled={busy}>{busy ? t('saving') : t('save')}</button>
       </div>
     </form>
   );
