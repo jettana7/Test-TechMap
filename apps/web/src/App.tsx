@@ -88,6 +88,7 @@ function Workspace({ session, onLogout }: { session: Session; onLogout: () => vo
             technicians={technicians}
             province={province}
             focusId={focusId}
+            onClearProvince={() => setProvince(undefined)}
             onFocus={setFocusId}
             onEdit={(t) => { setFormError(''); setEditing({ technician: t }); }}
             onDelete={(t) => void remove(t)}
