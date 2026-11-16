@@ -8,6 +8,7 @@ export const FALLBACK_COLOR = '#9E9E9E';
 
 const COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/;
 const PHONE_PATTERN = /^[0-9+\-\s]*$/;
+const UNAVAILABLE_TOKENS: ReadonlySet<string> = new Set(['ไม่ว่าง', 'false', '0', 'unavailable', 'busy']);
 
 export function isValidColor(value: string): boolean {
   return COLOR_PATTERN.test(value);
@@ -15,6 +16,10 @@ export function isValidColor(value: string): boolean {
 
 export function isValidTimestamp(value: string): boolean {
   return value !== '' && !Number.isNaN(Date.parse(value));
+}
+
+export function parseAvailable(value: string): boolean {
+  return !UNAVAILABLE_TOKENS.has(value.trim().toLowerCase());
 }
 
 export interface RowIssue {
@@ -67,6 +72,10 @@ export function parseRow(row: readonly string[], sheetRow: number): ParsedRow {
   } else {
     if (!isValidTimestamp(updatedAt)) report('เวลาแก้ไขล่าสุดไม่ถูกต้อง');
     const coverage = normalizeCoverage(base.codes, service.codes);
+    const available = parseAvailable(cell(row, 'available'));
+    const unavailableReason = available ? '' : cell(row, 'unavailableReason');
+    const unavailableUntil = available ? '' : cell(row, 'unavailableUntil');
+    const note = cell(row, 'note');
     technician = {
       id,
       code,
@@ -75,6 +84,10 @@ export function parseRow(row: readonly string[], sheetRow: number): ParsedRow {
       color: isValidColor(colorRaw) ? colorRaw.toUpperCase() : FALLBACK_COLOR,
       baseProvinces: coverage.baseProvinces,
       serviceProvinces: coverage.serviceProvinces,
+      available,
+      unavailableReason,
+      unavailableUntil,
+      note,
       updatedAt,
       updatedBy: cell(row, 'updatedBy'),
     };
@@ -96,6 +109,10 @@ export function technicianToRow(technician: Technician): string[] {
     updatedBy: technician.updatedBy,
     deletedAt: '',
     deletedBy: '',
+    available: technician.available ? 'ว่าง' : 'ไม่ว่าง',
+    unavailableReason: technician.available ? '' : technician.unavailableReason,
+    unavailableUntil: technician.available ? '' : technician.unavailableUntil,
+    note: technician.note,
   };
   return COLUMNS.map((name) => values[name]);
 }

@@ -63,6 +63,10 @@ export class CreateTechnician {
       color,
       baseProvinces: coverage.baseProvinces,
       serviceProvinces: coverage.serviceProvinces,
+      available: true,
+      unavailableReason: '',
+      unavailableUntil: '',
+      note: data.note,
       updatedAt: now,
       updatedBy: actor,
     };
@@ -99,6 +103,7 @@ export class UpdateTechnician {
     assertCodeUnique(data.code, repository.list(), command.id);
 
     const coverage = normalizeCoverage(data.baseProvinces, data.serviceProvinces);
+    const available = data.available;
     const candidate = {
       code: data.code,
       nickname: data.nickname,
@@ -106,6 +111,10 @@ export class UpdateTechnician {
       color: data.color.toUpperCase(),
       baseProvinces: coverage.baseProvinces,
       serviceProvinces: coverage.serviceProvinces,
+      available,
+      unavailableReason: available ? '' : data.unavailableReason,
+      unavailableUntil: available ? '' : data.unavailableUntil,
+      note: data.note,
     };
 
     const changed = changedFieldLabels(current, candidate);

@@ -29,6 +29,7 @@ export class SheetRowNormalizer {
       }
       if (!isValidTimestamp(cell(raw, 'updatedAt'))) updates.updatedAt = this.clock.nowIso();
       if (cell(raw, 'updatedBy') === '') updates.updatedBy = actor;
+      if (cell(raw, 'available') === '') updates.available = 'ว่าง';
 
       if (Object.keys(updates).length === 0) continue;
       this.gateway.writeRow(FIRST_DATA_ROW + index, withCells(raw, updates));

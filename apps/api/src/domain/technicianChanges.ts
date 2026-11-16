@@ -7,13 +7,18 @@ const FIELD_LABELS = {
   color: 'สี',
   baseProvinces: 'จังหวัดฐาน',
   serviceProvinces: 'จังหวัดที่ไปได้',
+  available: 'สถานะ',
+  unavailableReason: 'สาเหตุที่ไม่ว่าง',
+  unavailableUntil: 'กลับมาว่างวันที่',
+  note: 'หมายเหตุ',
 } as const;
 
 type TrackedField = keyof typeof FIELD_LABELS;
 
 const FIELDS = Object.keys(FIELD_LABELS) as TrackedField[];
 
-function toKey(value: string | readonly string[]): string {
+function toKey(value: string | boolean | readonly string[]): string {
+  if (typeof value === 'boolean') return value ? '1' : '0';
   return typeof value === 'string' ? value : [...value].sort().join(',');
 }
 

@@ -28,6 +28,10 @@ function tech(n: number): Technician {
     color: '#E53935',
     baseProvinces: ['73'],
     serviceProvinces: [],
+    available: true,
+    unavailableReason: '',
+    unavailableUntil: '',
+    note: '',
     updatedAt: '2025-01-01T00:00:00.000Z',
     updatedBy: 'seed',
   };
@@ -87,6 +91,22 @@ describe('parseRow', () => {
       2,
     );
     expect(result.technician?.serviceProvinces).toEqual(['72']);
+  });
+
+  it('อ่านสถานะไม่ว่างและสาเหตุจากชีต และล้างสาเหตุเมื่อสถานะเป็นว่าง', () => {
+    const busyRow = parseRow(
+      row({ ...completeRow, available: 'ไม่ว่าง', unavailableReason: 'ติดงานติดตั้ง' }),
+      2,
+    );
+    expect(busyRow.technician?.available).toBe(false);
+    expect(busyRow.technician?.unavailableReason).toBe('ติดงานติดตั้ง');
+
+    const readyRow = parseRow(
+      row({ ...completeRow, available: 'ว่าง', unavailableReason: 'ค้างเก่า' }),
+      2,
+    );
+    expect(readyRow.technician?.available).toBe(true);
+    expect(readyRow.technician?.unavailableReason).toBe('');
   });
 });
 

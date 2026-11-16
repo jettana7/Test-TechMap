@@ -48,12 +48,14 @@ function expectDomainError(fn: () => unknown, code: string): void {
 }
 
 describe('CreateTechnician', () => {
-  it('สร้างช่างพร้อม id, สีอัตโนมัติ และผู้แก้ไข', () => {
+  it('สร้างช่างพร้อม id, สีอัตโนมัติ และผู้แก้ไข โดยสถานะเริ่มต้นพร้อมรับงานเสมอ', () => {
     const { create, list } = setup();
     const created = create.execute(input, 'สมชาย');
     expect(created.id).toBe('id-1');
     expect(created.code).toBe('088');
     expect(created.color).toBe(COLOR_PALETTE[0]);
+    expect(created.available).toBe(true);
+    expect(created.unavailableReason).toBe('');
     expect(created.updatedBy).toBe('สมชาย');
     expect(list.execute()).toHaveLength(1);
   });
@@ -177,6 +179,44 @@ describe('UpdateTechnician', () => {
     );
     expect(result.updatedAt).toBe(created.updatedAt);
     expect(audit.entries).toHaveLength(1);
+  });
+
+  it('เปลี่ยนสถานะเป็นไม่ว่างพร้อมระบุสาเหตุ และเมื่อกลับมาว่างจะล้างสาเหตุให้อัตโนมัติ', () => {
+    const { create, update, audit } = setup();
+    const created = create.execute(input, 'สมชาย');
+    const busy = update.execute(
+      {
+        id: created.id,
+        expectedUpdatedAt: created.updatedAt,
+        data: {
+          ...input,
+          color: created.color,
+          available: false,
+          unavailableReason: 'ติดงานติดตั้ง จ.ชลบุรี',
+        },
+      },
+      'สมหญิง',
+    );
+    expect(busy.available).toBe(false);
+    expect(busy.unavailableReason).toBe('ติดงานติดตั้ง จ.ชลบุรี');
+    expect(audit.entries.at(-1)?.summary).toContain('สถานะ');
+    expect(audit.entries.at(-1)?.summary).toContain('สาเหตุที่ไม่ว่าง');
+
+    const readyAgain = update.execute(
+      {
+        id: busy.id,
+        expectedUpdatedAt: busy.updatedAt,
+        data: {
+          ...input,
+          color: busy.color,
+          available: true,
+          unavailableReason: 'ติดงานติดตั้ง จ.ชลบุรี',
+        },
+      },
+      'สมหญิง',
+    );
+    expect(readyAgain.available).toBe(true);
+    expect(readyAgain.unavailableReason).toBe('');
   });
 });
 

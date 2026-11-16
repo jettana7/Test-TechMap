@@ -38,3 +38,11 @@ export function toMapPoint(v: View, box: Box, cx: number, cy: number, W: number,
 export function panBy(v: View, dxPx: number, dyPx: number, scale: number, W: number, H: number): View {
   return clampView({ ...v, x: v.x - dxPx / scale, y: v.y - dyPx / scale }, W, H);
 }
+
+/** เลื่อนและซูมแผนที่ให้จุด (px, py) อยู่กึ่งกลางหน้าจอ */
+export function focusAt(px: number, py: number, k: number, W: number, H: number): View {
+  const clampedK = clampK(k);
+  const w = W / clampedK;
+  const h = H / clampedK;
+  return clampView({ k: clampedK, x: px - w / 2, y: py - h / 2 }, W, H);
+}

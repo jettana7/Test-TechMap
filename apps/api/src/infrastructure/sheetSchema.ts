@@ -10,6 +10,10 @@ export const COLUMNS = [
   'updatedBy',
   'deletedAt',
   'deletedBy',
+  'available',
+  'unavailableReason',
+  'unavailableUntil',
+  'note',
 ] as const;
 
 export type ColumnName = (typeof COLUMNS)[number];
@@ -32,6 +36,10 @@ export const HEADER_LABELS: readonly string[] = [
   'แก้ไขโดย (ระบบ)',
   'ลบเมื่อ',
   'ลบโดย',
+  'สถานะ',
+  'สาเหตุที่ไม่ว่าง',
+  'กลับมาว่างวันที่',
+  'หมายเหตุ',
 ];
 
 export function columnIndex(name: ColumnName): number {

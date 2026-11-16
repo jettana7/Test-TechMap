@@ -18,6 +18,10 @@ export const technicianInputSchema = z.object({
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'สีต้องเป็นรูปแบบ #RRGGBB'),
   baseProvinces: z.array(provinceCodeSchema).max(77),
   serviceProvinces: z.array(provinceCodeSchema).max(77),
+  available: z.boolean().default(true),
+  unavailableReason: z.string().trim().max(200, 'สาเหตุต้องไม่เกิน 200 ตัวอักษร').default(''),
+  unavailableUntil: z.string().trim().max(20).default(''),
+  note: z.string().trim().max(300, 'หมายเหตุต้องไม่เกิน 300 ตัวอักษร').default(''),
 });
 
 export const technicianSchema = technicianInputSchema.extend({

@@ -55,6 +55,10 @@ function prepareTechniciansSheet(spreadsheet: Spreadsheet): void {
   sheet.setFrozenRows(1);
   sheet.setColumnWidth(columnIndex('baseProvinces') + 1, 240);
   sheet.setColumnWidth(columnIndex('serviceProvinces') + 1, 240);
+  sheet.setColumnWidth(columnIndex('available') + 1, 100);
+  sheet.setColumnWidth(columnIndex('unavailableReason') + 1, 220);
+  sheet.setColumnWidth(columnIndex('unavailableUntil') + 1, 130);
+  sheet.setColumnWidth(columnIndex('note') + 1, 240);
 
   const systemRange = sheet.getRange(
     2,
