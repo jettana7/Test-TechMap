@@ -1,5 +1,5 @@
 import { isProvinceCode, type Technician, type TechnicianInput } from '@technician-map/shared';
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useI18n } from '../application/I18nContext';
 import { addDaysIsoDate, todayIsoDate } from '../domain/search';
 import { ProvincePicker } from './ProvincePicker';
@@ -17,6 +17,7 @@ const onlyProvinces = (codes: string[]) => codes.filter(isProvinceCode);
 
 export function TechnicianForm({ technician, busy, error, onSubmit, onCancel }: Props) {
   const { t } = useI18n();
+  const formRef = useRef<HTMLFormElement>(null);
   const [code, setCode] = useState(technician?.code ?? '');
   const [nickname, setNickname] = useState(technician?.nickname ?? '');
   const [phone, setPhone] = useState(technician?.phone ?? '');
@@ -27,6 +28,10 @@ export function TechnicianForm({ technician, busy, error, onSubmit, onCancel }: 
   const [available, setAvailable] = useState<boolean>(technician ? technician.available !== false : true);
   const [unavailableReason, setUnavailableReason] = useState<string>(technician?.unavailableReason ?? '');
   const [unavailableUntil, setUnavailableUntil] = useState<string>(technician?.unavailableUntil ?? '');
+
+  useEffect(() => {
+    formRef.current?.closest('.panel')?.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   const presets = [t('presetJob'), t('presetLeave'), t('presetRepair')];
 
@@ -48,10 +53,18 @@ export function TechnicianForm({ technician, busy, error, onSubmit, onCancel }: 
   };
 
   return (
-    <form className="form" onSubmit={submit}>
-      <div className="form-header">
+    <form ref={formRef} className="form" onSubmit={submit}>
+      <div className="form-topbar">
+        <button type="button" className="back-btn" onClick={onCancel} disabled={busy}>
+          {t('backToList')}
+        </button>
         <h2>{technician ? t('formEdit') : t('formAdd')}</h2>
+        <button type="submit" className="primary" disabled={busy}>
+          {busy ? t('saving') : t('save')}
+        </button>
       </div>
+
+      {error !== '' && <p className="error-box">{error}</p>}
 
       {!technician && (
         <div className="info-note">
@@ -193,11 +206,9 @@ export function TechnicianForm({ technician, busy, error, onSubmit, onCancel }: 
         <ProvincePicker label={t('fieldService')} value={service} onChange={setService} />
       </div>
 
-      {error !== '' && <p className="error-box">{error}</p>}
-
       <div className="row form-actions">
         <button type="button" onClick={onCancel} disabled={busy}>{t('cancel')}</button>
-        <button className="primary" disabled={busy}>{busy ? t('saving') : t('save')}</button>
+        <button type="submit" className="primary" disabled={busy}>{busy ? t('saving') : t('save')}</button>
       </div>
     </form>
   );

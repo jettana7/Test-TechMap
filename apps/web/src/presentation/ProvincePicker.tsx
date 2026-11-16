@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useI18n } from '../application/I18nContext';
 import { provinceFromText, provinceSearchNames } from '../domain/provinceNames';
-import { PROVINCE_LIST, REGION_GROUPS } from '../domain/provinces';
+import { PROVINCE_LIST } from '../domain/provinces';
 
 interface Props {
   readonly label: string;
@@ -10,24 +10,37 @@ interface Props {
 }
 
 /**
- * ตัวเลือกจังหวัดที่รองรับการแตะเลือกโซน/รายจังหวัดบน iPad และการพิมพ์ค้นหาได้ทุกภาษา
+ * ช่องเลือกจังหวัดแบบพิมพ์ค้นหาพร้อม Dropdown ตัวเลือกที่เปิดเฉพาะตอนคลิกหรือพิมพ์ ไม่รกตา
  */
 export function ProvincePicker({ label, value, onChange }: Props) {
   const { t, label: nameOf } = useI18n();
   const [text, setText] = useState('');
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onPointerDown = (e: MouseEvent | TouchEvent): void => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    document.addEventListener('touchstart', onPointerDown);
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('touchstart', onPointerDown);
+    };
+  }, []);
 
   const addCode = (code: string): void => {
     if (!value.includes(code)) onChange([...value, code]);
     setText('');
-  };
-
-  const addManyCodes = (codes: readonly string[]): void => {
-    const merged = [...new Set([...value, ...codes])];
-    onChange(merged);
+    setOpen(false);
   };
 
   const handleInput = (input: string): void => {
     setText(input);
+    setOpen(true);
     const exactCode = provinceFromText(input);
     if (exactCode !== undefined) {
       addCode(exactCode);
@@ -44,19 +57,17 @@ export function ProvincePicker({ label, value, onChange }: Props) {
         );
 
   return (
-    <div className="province-picker">
+    <div className="province-picker" ref={wrapRef}>
       <div className="picker-head">
         <span className="picker-label">{label}</span>
-        <div className="picker-head-right">
-          <span className="picker-meta">
-            {value.length > 0 ? t('pickerSelectedCount', { n: value.length }) : t('pickerNoSelected')}
-          </span>
-          {value.length > 0 && (
+        {value.length > 0 && (
+          <div className="picker-head-right">
+            <span className="picker-meta">{t('pickerSelectedCount', { n: value.length })}</span>
             <button type="button" className="clear-all-btn" onClick={() => onChange([])}>
               {t('clearAllProvinces')}
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {value.length > 0 && (
@@ -75,50 +86,50 @@ export function ProvincePicker({ label, value, onChange }: Props) {
         </div>
       )}
 
-      <div className="region-bar">
-        <span className="region-bar-label">{t('regionQuickSelect')}</span>
-        <div className="region-buttons">
-          {REGION_GROUPS.map((group) => {
-            const allSelected = group.codes.every((code) => value.includes(code));
-            return (
-              <button
-                type="button"
-                key={group.key}
-                className={`region-pill ${allSelected ? 'done' : ''}`}
-                disabled={allSelected}
-                onClick={() => addManyCodes(group.codes)}
-              >
-                {t(group.key)}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <input
-        value={text}
-        placeholder={t('pickerPlaceholder')}
-        onChange={(e) => handleInput(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' && filteredProvinces.length > 0) {
-            e.preventDefault();
-            const first = filteredProvinces[0];
-            if (first) addCode(first.code);
-          }
-        }}
-      />
-
-      <div className="picker-suggestions" role="group" aria-label={label}>
-        {filteredProvinces.map((p) => (
+      <div className="dropdown-box">
+        <div className="dropdown-input-wrap">
+          <input
+            value={text}
+            placeholder={t('pickerPlaceholder')}
+            onFocus={() => setOpen(true)}
+            onClick={() => setOpen(true)}
+            onChange={(e) => handleInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                setOpen(false);
+              } else if (e.key === 'Enter' && filteredProvinces.length > 0) {
+                e.preventDefault();
+                const first = filteredProvinces[0];
+                if (first) addCode(first.code);
+              }
+            }}
+          />
           <button
             type="button"
-            key={p.code}
-            className="suggestion-pill"
-            onClick={() => addCode(p.code)}
+            className="dropdown-toggle-btn"
+            tabIndex={-1}
+            aria-label={label}
+            onClick={() => setOpen((prev) => !prev)}
           >
-            + {nameOf(p.code)}
+            ▾
           </button>
-        ))}
+        </div>
+
+        {open && filteredProvinces.length > 0 && (
+          <ul className="dropdown-menu" role="listbox" aria-label={label}>
+            {filteredProvinces.map((p) => (
+              <li key={p.code}>
+                <button
+                  type="button"
+                  className="dropdown-item"
+                  onClick={() => addCode(p.code)}
+                >
+                  {nameOf(p.code)}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
